@@ -84,6 +84,8 @@ body{font-family:"Noto Sans Bengali","Noto Sans Devanagari","Hind Siliguri","Hin
 .mc h3{margin:0 0 4px}.mc p{margin:2px 0 8px;color:var(--muted);font-size:.85rem}
 .rad{min-height:120px;margin:8px auto;display:flex;align-items:center;justify-content:center;border:1px dashed #5a3fa8;border-radius:10px;color:var(--muted);font-size:.8rem;overflow:hidden}
 .snd{position:fixed;top:8px;right:8px;z-index:40;width:38px;height:38px;border-radius:50%;border:1px solid #5a3fa8;background:#2a1660dd;color:#fff;font-size:1.05rem;cursor:pointer;padding:0}
+.off{position:fixed;inset:0;z-index:80;background:#1a0b3bf5;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:#fff}
+.off p{color:var(--muted);line-height:1.6}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#000d;color:#fff;padding:10px 16px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;font-weight:700;max-width:90%;text-align:center}
 .toast.on{opacity:1}
 </style>
@@ -116,6 +118,7 @@ body{font-family:"Noto Sans Bengali","Noto Sans Devanagari","Hind Siliguri","Hin
 </section>
 
 </div>
+<div class="off hide" id="off"><div><div style="font-size:56px">📶</div><h2 data-i="offT"></h2><p data-i="offP"></p></div></div>
 <button class="snd" id="bSnd" aria-label="sound"></button>
 <div class="md hide" id="md"></div>
 <div class="toast" id="ts"></div>
@@ -127,6 +130,7 @@ var N=8,EM=['🍓','🍋','🍇','🍏','🍊','🍒'],BG=['#ff4d6d','#ffd23d','
 var LG=['bn','en','hi'];
 var L={
 title:['🍓 ফল ধামাকা','🍓 Fruit Blast','🍓 फल धमाका'],
+offT:['ইন্টারনেট নেই','No internet','इंटरनेट नहीं है'],offP:['ফল ধামাকা খেলতে ইন্টারনেট চালু করুন। চালু হলে নিজে থেকেই খেলা ফিরে আসবে।','Turn on the internet to play Fruit Blast. The game returns by itself once you are online.','फल धमाका खेलने के लिए इंटरनेट चालू करें। नेट आते ही खेल अपने आप लौट आएगा।'],insHelp:['Chrome-এর মেনু (⋮) খুলে "Install app" বা "Add to Home screen" চাপুন','Open the Chrome menu (⋮) and tap "Install app" or "Add to Home screen"','Chrome मेन्यू (⋮) खोलें और "Install app" या "Add to Home screen" दबाएं'],
 snT:['সাউন্ড: {0}','Sound: {0}','आवाज़: {0}'],sn0:['নরম বাবল 🫧','Soft bubble 🫧','सॉफ्ट बबल 🫧'],sn1:['ঘণ্টা / মারিম্বা 🔔','Bell & marimba 🔔','घंटी / मारिम्बा 🔔'],sn2:['আর্কেড 🎮','Arcade 🎮','आर्केड 🎮'],sn3:['সাউন্ড বন্ধ 🔇','Sound off 🔇','आवाज़ बंद 🔇'],
 welcome:['🎉 স্বাগতম!','🎉 Welcome!','🎉 स्वागत है!'],welcome2:['১০০০ লেভেলের ফল-ফাটানো মজায় আপনাকে অভিনন্দন','Enjoy 1000 levels of fruit-popping fun','1000 लेवल की फल फोड़ने वाली मस्ती में आपका स्वागत है'],bigT:['বিজ্ঞাপন','Advertisement','विज्ञापन'],close:['✕ বন্ধ করুন','✕ Close','✕ बंद करें'],
 lvl:['লেভেল','Level','लेवल'],sc:['স্কোর / টার্গেট','Score / Target','स्कोर / टार्गेट'],mv:['বাকি চাল','Moves left','बची चालें'],
@@ -188,6 +192,7 @@ function fitAd(el){var f=el.querySelector('iframe');if(!f)return;var s=Math.min(
 var TS=A.topSize||[320,50],GS=A.gameSize||[320,50];
 function mountAds(w){if(w==='home'){slot($('adTop'),A.top,TS[0],TS[1]);$('adGame').innerHTML='';$('adGame').style.height=''}else{slot($('adGame'),A.game||A.top,GS[0],GS[1]);$('adTop').innerHTML=''}}
 if(A.socialBar){var sb=document.createElement('script');sb.src=A.socialBar;sb.async=true;document.head.appendChild(sb)}
+if(A.siteScripts){var dv=document.createElement('div');dv.innerHTML=A.siteScripts;Array.prototype.forEach.call(dv.querySelectorAll('script'),function(o){var s2=document.createElement('script');Array.prototype.forEach.call(o.attributes,function(at){s2.setAttribute(at.name,at.value)});s2.text=o.text;document.head.appendChild(s2)})}
 
 /* ---- সাউন্ড: ৩ স্টাইল (Web Audio, কোনো ফাইল লাগে না) ---- */
 var AC=null,MG=null,sn=+(lget('fd_snd2')||'0');if(!(sn>=0&&sn<=3))sn=0;
@@ -334,11 +339,14 @@ $('bSkip').onclick=function(){if(phase!=='play'||busy)return;reward('skip0',doSk
 $('bFr').onclick=function(){var d={title:t('title').replace('🍓 ',''),text:t('shareT'),url:location.href};
 if(navigator.share){navigator.share(d).catch(function(){})}else{try{navigator.clipboard.writeText(d.url);msg(t('shareC'))}catch(e){prompt(t('shareC'),d.url)}}};
 var dp=null,isIos=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!navigator.standalone,inst=window.matchMedia&&matchMedia('(display-mode: standalone)').matches;
-window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;if(!inst)$('bIns').hidden=false});
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e});
 window.addEventListener('appinstalled',function(){$('bIns').hidden=true});
-if(isIos&&!inst)$('bIns').hidden=false;
-$('bIns').onclick=function(){if(dp){dp.prompt();dp=null;$('bIns').hidden=true}else alert(t('ios'))};
-if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(function(){});
+if(!inst)$('bIns').hidden=false;
+$('bIns').onclick=function(){if(dp){dp.prompt();dp=null}else alert(isIos?t('ios'):t('insHelp'))};
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('app-sw.js').catch(function(){});
+/* অনলাইন ছাড়া খেলা যাবে না */
+function netChk(){$('off').classList.toggle('hide',navigator.onLine!==false)}
+window.addEventListener('online',netChk);window.addEventListener('offline',netChk);
 
 function applyLang(){document.documentElement.lang=LG[lang];document.title=t('title').replace('🍓 ','');
 Array.prototype.forEach.call(document.querySelectorAll('[data-i]'),function(e){e.textContent=t(e.dataset.i)});
@@ -347,7 +355,7 @@ $('rl').innerHTML=t('rules');hud();
 if(phase==='menu')renderHome(pg);else if(phase==='over')renderEnd()}
 Array.prototype.forEach.call(document.querySelectorAll('.lg button'),function(b){b.onclick=function(){lang=LG.indexOf(b.dataset.g);lset('fd_lang',b.dataset.g);cset('fd_lang',b.dataset.g);applyLang()}});
 
-mountAds('home');sndBtn();applyLang();renderHome();
+mountAds('home');sndBtn();applyLang();renderHome();netChk();
 })();
 </script>
 </body>
